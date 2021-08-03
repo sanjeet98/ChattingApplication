@@ -1,4 +1,4 @@
-# ChattingApplication
+# Chatting Application
 
 *End to End chatting app*
 
