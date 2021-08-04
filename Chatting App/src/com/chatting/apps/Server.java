@@ -3,8 +3,22 @@ package com.chatting.apps;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Image;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 /**
  * @author sakaul
@@ -16,8 +30,13 @@ public class Server extends JFrame implements ActionListener{
 	JPanel p1; // container that can store a group of components
 	JTextField t1; // area to write text 
 	JButton b1; // click to send button
-	JTextArea a1; // area to display message 
-	Server(){
+	static JTextArea a1; // area to display message 
+	static ServerSocket skt;
+	static Socket s;
+	static DataInputStream din;
+	static DataOutputStream dout;
+	
+	Server(){ // constructor
 		
 		p1 = new JPanel();
 		p1.setLayout(null);
@@ -87,38 +106,62 @@ public class Server extends JFrame implements ActionListener{
 		l4.setForeground(Color.WHITE);
 		l4.setFont(new Font("SAN_SERIF", Font.PLAIN, 12));
 		p1.add(l4);
-			
+		
 		a1 = new JTextArea();
-		a1.setBounds(5, 75, 440, 450);
-		//a1.setBackground(Color.PINK);
+		a1.setBounds(5, 80, 427, 330);
+		a1.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
+		a1.setBackground(Color.PINK);
+		a1.setEditable(false);
+		a1.setLineWrap(true);
+		a1.setWrapStyleWord(true);
 		add(a1);
-			
+		
 		t1 = new JTextField();
-		t1.setBounds(5, 655, 310, 40);
+		t1.setBounds(5, 420, 310, 40);
 		t1.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
 		add(t1);
 	    
 		b1 = new JButton("Send");
-		b1.setBounds(320, 655, 123, 40);
+		b1.setBounds(310, 420, 123, 40);
 		b1.setBackground(new Color(7, 94, 84));
 		b1.setForeground(Color.WHITE);
 		b1.setFont(new Font("SAN_SERIF", Font.PLAIN, 16));
-		b1.addActionListener(this);
+		b1.addActionListener(this); // for action on send to display message
 		add(b1);
-	
+		
+		//getContentPane().setBackground(Color.WHITE);
 		setLayout(null); // null for avoiding default layout 
-		setSize(450, 500); //frame size
-		setLocation(400, 100); // frame location, default (0,0)
+		setSize(450, 500); // frame size
+		setLocation(200, 100); // frame location, default (0,0)
 		// setUndecorated(true); // to remove the default frame
 		setVisible(true); // makes the frame appear on the screen default (false)
+	}
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		try {
+			String out = t1.getText();
+			a1.setText(a1.getText()+ "\n\t\t\t"+out);
+			dout.writeUTF(out);
+			t1.setText("");
+	 } catch(Exception e1) {}
 	}
 	
 	public static void main (String[] args){
 		new Server().setVisible(true);
-	}
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
+		String msginput = "";
 		
+		try {
+			skt = new ServerSocket(6001); // connecting both on a network to communicate with each other
+			s = skt.accept(); // for connection we need IP Address of Server and a Port number
+			din = new DataInputStream(s.getInputStream()); // data from other side
+			dout = new DataOutputStream(s.getOutputStream()); // data from this side
+			
+			msginput = din.readUTF(); // string that has been encoded using a modified UTF-8 format
+			a1.setText(a1.getText()+"\n"+msginput);
+			
+			skt.close(); // closing socket
+			s.close(); // closing server
+			
+		} catch (Exception e) {}
 	}
 }
